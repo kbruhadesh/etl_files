@@ -1,8 +1,10 @@
-import functions_framework
+from flask import Flask
 from google.cloud import storage, bigquery
 
-@functions_framework.http
-def run_etl(request):
+app = Flask(__name__)
+
+@app.route("/", methods=["GET"])
+def run_etl():
     client = storage.Client()
     bucket = client.bucket("etl-ecom-raw-etl-ecom-demo-479011")
     blob = bucket.blob("raw/dataset.csv")
@@ -22,3 +24,7 @@ def run_etl(request):
     bq.insert_rows_json(table, rows)
 
     return "ok"
+
+if __name__ == "__main__":
+    import os
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
