@@ -1,3 +1,3 @@
-functions-framework
+flask
 google-cloud-storage
 google-cloud-bigquery
