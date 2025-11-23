@@ -10,7 +10,8 @@ def run_etl():
     blob = bucket.blob("raw/dataset.csv")
 
     lines = blob.download_as_text().splitlines()
-    header = lines[0].split(",")
+    header = [h.replace(" ", "") for h in lines[0].split(",")]
+
 
     rows = []
     for line in lines[1:]:
