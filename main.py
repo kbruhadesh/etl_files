@@ -6,12 +6,12 @@ def run_etl(request):
     client = storage.Client()
     bucket = client.bucket("etl-ecom-raw-etl-ecom-demo-479011")
     blob = bucket.blob("raw/dataset.csv")
-    data = blob.download_as_text().splitlines()
 
-    header = data[0].split(",")
+    lines = blob.download_as_text().splitlines()
+    header = lines[0].split(",")
+
     rows = []
-
-    for line in data[1:]:
+    for line in lines[1:]:
         parts = line.split(",")
         if len(parts) != len(header):
             continue
