@@ -26,7 +26,7 @@ def to_float_safe(value):
         return None
 
 
-@app.route("/", methods=["GET"])
+@app.route("/run", methods=["GET"])
 def run_etl():
 
     storage_client = storage.Client()
