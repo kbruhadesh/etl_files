@@ -9,16 +9,24 @@ def run_etl():
     bucket = client.bucket("etl-ecom-raw-etl-ecom-demo-479011")
     blob = bucket.blob("raw/dataset.csv")
 
-    lines = blob.download_as_text().splitlines()
-    header = [h.replace(" ", "") for h in lines[0].split(",")]
-
+    text = blob.download_as_text()
+    lines = text.splitlines()
+    header = lines[0].split(",")
 
     rows = []
     for line in lines[1:]:
         parts = line.split(",")
         if len(parts) != len(header):
             continue
-        rows.append(dict(zip(header, parts)))
+        
+        row = dict(zip(header, parts))
+        
+        # convert types
+        row["Quantity"] = int(row["Quantity"])
+        row["Price"] = float(row["Price"])
+        row["CustomerID"] = int(float(row["CustomerID"]))
+
+        rows.append(row)
 
     bq = bigquery.Client()
     table = bq.dataset("ecom_uk").table("retail_uk")
