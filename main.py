@@ -1,92 +1,32 @@
 from flask import Flask
-from google.cloud import storage, bigquery
-import time
+from google.cloud import bigquery
 
 app = Flask(__name__)
 
-# ---------- SAFE CONVERTERS ----------
-def to_int_safe(value):
-    try:
-        if value is None:
-            return None
-        value = value.strip()
-        if value == "" or value.lower() in ("nan", "none", "null"):
-            return None
-        return int(float(value))
-    except:
-        return None
-
-def to_float_safe(value):
-    try:
-        if value is None:
-            return None
-        value = value.strip()
-        if value == "" or value.lower() in ("nan", "none", "null"):
-            return None
-        return float(value)
-    except:
-        return None
-
-# ---------- ETL ----------
 @app.route("/", methods=["GET"])
 def run_etl():
 
-    # ---- READ CSV FROM GCS ----
-    storage_client = storage.Client()
-    bucket = storage_client.bucket("etl-ecom-raw-etl-ecom-demo-479011")
-    blob = bucket.blob("raw/dataset.csv")
+    client = bigquery.Client()
 
-    text = blob.download_as_text()
-    lines = text.splitlines()
+    table_id = "etl-ecom-demo-479011.ecom_uk.retail_uk"
+    uri = "gs://etl-ecom-raw-etl-ecom-demo-479011/raw/dataset.csv"
 
-    # Clean header
-    header = [h.strip().replace("\ufeff", "") for h in lines[0].split(",")]
+    job_config = bigquery.LoadJobConfig(
+        source_format=bigquery.SourceFormat.CSV,
+        skip_leading_rows=1,
+        autodetect=True,    # infer types automatically
+        write_disposition="WRITE_TRUNCATE"  # replace table every run
+    )
 
-    rows = []
-    for line in lines[1:]:
-        parts = [p.strip() for p in line.split(",")]
+    load_job = client.load_table_from_uri(
+        uri, table_id, job_config=job_config
+    )
 
-        if len(parts) != len(header):
-            continue
+    load_job.result()  # Wait for job to finish
 
-        row = dict(zip(header, parts))
-
-        # SAFE conversions
-        row["Quantity"] = to_int_safe(row.get("Quantity"))
-        row["Price"] = to_float_safe(row.get("Price"))
-        row["CustomerID"] = to_int_safe(row.get("CustomerID"))
-
-        rows.append(row)
-
-    # ---- LOAD INTO BIGQUERY (BATCHED + RETRIES) ----
-    bq = bigquery.Client()
-    table = bq.dataset("ecom_uk").table("retail_uk")
-
-    BATCH_SIZE = 500      # even safer
-    MAX_RETRIES = 5
-    all_errors = []
-
-    for start in range(0, len(rows), BATCH_SIZE):
-        batch = rows[start:start + BATCH_SIZE]
-
-        for attempt in range(MAX_RETRIES):
-            errors = bq.insert_rows_json(table, batch)
-
-            if not errors:  # success
-                break
-
-            time.sleep(1 + attempt)  # exponential backoff
-
-            if attempt == MAX_RETRIES - 1:
-                all_errors.append({f"batch_{start//BATCH_SIZE}": errors})
-
-    if not all_errors:
-        return "SUCCESS: All rows inserted without errors."
-
-    return str(all_errors)
+    return "SUCCESS: Data loaded using BigQuery Load Job 🚀"
 
 
-# ------ CLOUD RUN SERVER ------
 if __name__ == "__main__":
     import os
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
