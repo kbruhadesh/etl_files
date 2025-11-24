@@ -1,5 +1,6 @@
 from flask import Flask
 from google.cloud import storage, bigquery
+import time
 
 app = Flask(__name__)
 
@@ -26,12 +27,11 @@ def to_float_safe(value):
     except:
         return None
 
-
-# ---------- ETL HANDLER ----------
+# ---------- ETL ----------
 @app.route("/", methods=["GET"])
 def run_etl():
 
-    # Read CSV from GCS
+    # ---- READ CSV FROM GCS ----
     storage_client = storage.Client()
     bucket = storage_client.bucket("etl-ecom-raw-etl-ecom-demo-479011")
     blob = bucket.blob("raw/dataset.csv")
@@ -39,47 +39,54 @@ def run_etl():
     text = blob.download_as_text()
     lines = text.splitlines()
 
-    header = lines[0].split(",")
+    # Clean header
+    header = [h.strip().replace("\ufeff", "") for h in lines[0].split(",")]
 
-    all_rows = []
+    rows = []
     for line in lines[1:]:
-        parts = line.split(",")
+        parts = [p.strip() for p in line.split(",")]
 
         if len(parts) != len(header):
             continue
 
         row = dict(zip(header, parts))
 
+        # SAFE conversions
         row["Quantity"] = to_int_safe(row.get("Quantity"))
         row["Price"] = to_float_safe(row.get("Price"))
         row["CustomerID"] = to_int_safe(row.get("CustomerID"))
 
-        all_rows.append(row)
+        rows.append(row)
 
-    # ---------- LOAD TO BIGQUERY ----------
+    # ---- LOAD INTO BIGQUERY (BATCHED + RETRIES) ----
     bq = bigquery.Client()
     table = bq.dataset("ecom_uk").table("retail_uk")
 
-    batch_size = 5000
-    batch_errors = []
+    BATCH_SIZE = 500      # even safer
+    MAX_RETRIES = 5
+    all_errors = []
 
-    for i in range(0, len(all_rows), batch_size):
-        chunk = all_rows[i:i+batch_size]
-        print(f"Inserting rows {i} to {i+len(chunk)} ...")
+    for start in range(0, len(rows), BATCH_SIZE):
+        batch = rows[start:start + BATCH_SIZE]
 
-        errors = bq.insert_rows_json(table, chunk)
-        if errors:
-            batch_errors.append({"batch": i, "errors": errors})
+        for attempt in range(MAX_RETRIES):
+            errors = bq.insert_rows_json(table, batch)
 
-    return {
-        "status": "completed",
-        "rows_inserted": len(all_rows),
-        "batches": len(all_rows) // batch_size + 1,
-        "errors": batch_errors
-    }
+            if not errors:  # success
+                break
+
+            time.sleep(1 + attempt)  # exponential backoff
+
+            if attempt == MAX_RETRIES - 1:
+                all_errors.append({f"batch_{start//BATCH_SIZE}": errors})
+
+    if not all_errors:
+        return "SUCCESS: All rows inserted without errors."
+
+    return str(all_errors)
 
 
-# ---------- FLASK SERVER ----------
+# ------ CLOUD RUN SERVER ------
 if __name__ == "__main__":
     import os
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))
