@@ -35,7 +35,6 @@ def run_etl():
 
     text = blob.download_as_text()
     lines = text.splitlines()
-
     header = lines[0].split(",")
 
     rows = []
@@ -45,31 +44,25 @@ def run_etl():
             continue
 
         row = dict(zip(header, parts))
-
         row["Quantity"] = to_int_safe(row.get("Quantity"))
         row["Price"] = to_float_safe(row.get("Price"))
         row["CustomerID"] = to_int_safe(row.get("CustomerID"))
-
         rows.append(row)
 
-    # ---------- BATCH INSERT ----------
     bq = bigquery.Client()
     table = bq.dataset("ecom_uk").table("retail_uk")
 
-    batch_size = 500
-    all_errors = []
+    def chunker(seq, size):
+        for pos in range(0, len(seq), size):
+            yield seq[pos:pos + size]
 
-    for i in range(0, len(rows), batch_size):
-        batch = rows[i:i + batch_size]
+    errors_all = []
+    for batch in chunker(rows, 5000):
         errors = bq.insert_rows_json(table, batch)
         if errors:
-            all_errors.extend(errors)
+            errors_all.extend(errors)
 
-    return {
-        "rows_inserted": len(rows),
-        "errors_found": len(all_errors),
-        "errors": all_errors
-    }
+    return str(errors_all)
 
 
 if __name__ == "__main__":
