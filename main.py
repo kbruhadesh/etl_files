@@ -58,17 +58,26 @@ def run_etl():
 
         rows.append(row)
 
-    # ---------- LOAD TO BIGQUERY ----------
+    # ---------- LOAD TO BIGQUERY (BATCHED INSERTS) ----------
     bq = bigquery.Client()
     table = bq.dataset("ecom_uk").table("retail_uk")
 
-    # INSERT with ERROR RETURN
-    errors = bq.insert_rows_json(table, rows)
+    BATCH_SIZE = 500
+    all_errors = []
 
-    print("BQ INSERT ERRORS:", errors)
+    for i in range(0, len(rows), BATCH_SIZE):
+        batch = rows[i:i + BATCH_SIZE]
+        errors = bq.insert_rows_json(table, batch)
+        if errors:
+            all_errors.extend(errors)
 
-    # Return BigQuery errors in browser for debugging
-    return str(errors)
+    print("BQ INSERT ERRORS:", all_errors)
+
+    return {
+        "rows_inserted": len(rows),
+        "errors_found": len(all_errors),
+        "errors": all_errors
+    }
 
 
 # ---------- FLASK SERVER FOR CLOUD RUN ----------
