@@ -3,6 +3,22 @@ from google.cloud import storage, bigquery
 
 app = Flask(__name__)
 
+def to_int_safe(value):
+    try:
+        if value is None or value.strip() == "":
+            return None
+        return int(float(value))
+    except:
+        return None
+
+def to_float_safe(value):
+    try:
+        if value is None or value.strip() == "":
+            return None
+        return float(value)
+    except:
+        return None
+
 @app.route("/", methods=["GET"])
 def run_etl():
     client = storage.Client()
@@ -18,13 +34,13 @@ def run_etl():
         parts = line.split(",")
         if len(parts) != len(header):
             continue
-        
+
         row = dict(zip(header, parts))
-        
-        # convert types
-        row["Quantity"] = int(row["Quantity"])
-        row["Price"] = float(row["Price"])
-        row["CustomerID"] = int(float(row["CustomerID"]))
+
+        # SAFE conversions
+        row["Quantity"] = to_int_safe(row["Quantity"])
+        row["Price"] = to_float_safe(row["Price"])
+        row["CustomerID"] = to_int_safe(row["CustomerID"])
 
         rows.append(row)
 
