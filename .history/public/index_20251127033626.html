@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETL Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="title">ETL Control Dashboard</div>
+    <div class="meta">Manual trigger · BigQuery Load Job</div>
+  </div>
+
+  <div class="container">
+
+    <div class="panel">
+      <div class="controls">
+        <div class="left">
+          <button class="btn primary" id="runBtn">Run ETL</button>
+          <button class="btn ghost" id="runQuietBtn">Run (Quiet)</button>
+        </div>
+
+        <div class="right">
+          <label class="small">Method</label>
+          <select id="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+          </select>
+
+          <!-- ▼ INSERTED MODULE DROPDOWN -->
+          <label class="small">Module</label>
+          <select id="module">
+            <option value="RAW_LOAD">Raw Load</option>
+            <option value="TRANSFORM">Transform</option>
+            <option value="CLEANING">Cleaning</option>
+            <option value="BQ_LOAD">BigQuery Load</option>
+            <option value="SUMMARY_REFRESH">Summary Refresh</option>
+          </select>
+          <!-- ▲ END INSERT -->
+
+          <label class="small">Timeout (sec)</label>
+          <input id="timeout" type="number" value="30" />
+
+          <span id="serviceUrlShort"></span>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <span id="statusPill" class="status status-wait">Idle</span>
+        <span id="lastRun" class="status-info">Last run: —</span>
+      </div>
+
+      <div class="status-info" id="lastResult">Last result: —</div>
+    </div>
+
+    <div class="panel">
+      <div class="log-actions">
+        <button class="btn ghost" id="retryBtn">Retry</button>
+        <button class="btn ghost" id="copyLogs">Copy</button>
+        <button class="btn ghost" id="clearHistory">Clear</button>
+      </div>
+
+      <div class="history" id="historyList"></div>
+
+      <div class="logbox" id="logBox">Logs will appear here...</div>
+    </div>
+
+  </div>
+
+  <!-- ▼ NEW ADD RECORD SECTION -->
+  <h3 style="margin-top:20px;">Add New Record</h3>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+    <input id="inv" placeholder="Invoice">
+    <input id="stock" placeholder="StockCode">
+    <input id="desc" placeholder="Description">
+    <input id="qty" placeholder="Quantity">
+    <input id="price" placeholder="Price">
+    <input id="cust" placeholder="CustomerID">
+    <input id="country" placeholder="Country">
+  </div>
+
+  <button class="btn primary" id="addRecordBtn" style="margin-top:10px;">
+    Add Record
+  </button>
+  <!-- ▲ END ADD RECORD SECTION -->
+
+  <script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ETL Control Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">ETL Control Dashboard</div>
+    <div class="meta">Manual trigger UI for Cloud Run ETL · <span id="serviceUrlShort"></span></div>
+  </header>
+
+  <main class="container">
+    <section class="panel control-panel">
+      <h2>Manual ETL Trigger</h2>
+      <div class="controls">
+        <div class="left">
+          <button id="runBtn" class="btn primary">Run ETL</button>
+          <button id="runQuietBtn" class="btn ghost">Run (quiet)</button>
+          <button id="retryBtn" class="btn ghost">Retry Last</button>
+        </div>
+
+        <div class="right">
+          <label class="small">Method
+            <select id="method">
+              <option>GET</option>
+              <option>POST</option>
+            </select>
+          </label>
+          <label class="small">Timeout (s)
+            <input id="timeout" type="number" min="5" value="30" />
+          </label>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <div id="statusPill" class="status status-wait">Idle</div>
+        <div class="status-info">
+          <div id="lastRun">Last run: —</div>
+          <div id="lastResult" class="small muted">No runs yet</div>
+        </div>
+      </div>
+
+      <div class="log-actions">
+        <button id="clearHistory" class="btn ghost">Clear History</button>
+        <button id="copyLogs" class="btn ghost">Copy Logs</button>
+      </div>
+    </section>
+
+    <section class="panel logs-panel">
+      <h2>Run History & Logs</h2>
+      <div id="historyList" class="history"></div>
+      <pre id="logBox" class="logbox">No logs yet.</pre>
+    </section>
+  </main>
+
+  <footer class="footer">Tip: set method=POST and secure Cloud Run later for production.</footer>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

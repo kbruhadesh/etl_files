@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ETL Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-title">ETL Control Dashboard</div>
+  </nav>
+
+  <!-- MAIN DASHBOARD -->
+  <div class="container">
+    <div class="card">
+      <h2>Manual ETL Trigger</h2>
+      <p>Click below to start the ETL Load Job in BigQuery.</p>
+
+      <button id="runETL">Run ETL Pipeline</button>
+
+      <div id="statusBox" class="status-box">Status: Idle</div>
+    </div>
+
+    <!-- LOGS -->
+    <div class="card logs-card">
+      <h2>Logs</h2>
+      <pre id="logOutput">(No logs yet)</pre>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

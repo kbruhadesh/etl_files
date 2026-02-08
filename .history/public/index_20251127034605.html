@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ETL Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+
+<body>
+
+  <div class="topbar">
+    <div class="title">ETL Control Dashboard</div>
+    <div class="meta">Manual trigger · BigQuery Load Job</div>
+  </div>
+
+  <div class="container">
+
+    <!-- LEFT PANEL -->
+    <div class="panel">
+
+      <div class="controls">
+        <div class="left">
+          <button class="btn primary" id="runBtn">Run ETL</button>
+          <button class="btn ghost" id="runQuietBtn">Run (Quiet)</button>
+        </div>
+
+        <div class="right">
+          <label class="small">Method</label>
+          <select id="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="status-row">
+        <span id="statusPill" class="status status-wait">Idle</span>
+        <span id="lastRun" class="status-info">Last run: —</span>
+      </div>
+
+      <div class="status-info" id="lastResult">Last result: —</div>
+
+      <!-- ADD NEW RECORD -->
+      <h3 style="margin-top:25px;">Add New Record</h3>
+      <div class="form-grid">
+        <input id="inv" placeholder="Invoice"/>
+        <input id="stock" placeholder="StockCode"/>
+        <input id="desc" placeholder="Description"/>
+        <input id="qty" placeholder="Quantity" type="number"/>
+        <input id="price" placeholder="Price" type="number"/>
+        <input id="cust" placeholder="CustomerID" type="number"/>
+        <input id="country" placeholder="Country"/>
+      </div>
+
+      <button class="btn primary" id="addRecordBtn" style="margin-top:10px;">Add Record</button>
+
+      <div id="toast" class="toast hidden"></div>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="panel">
+      <div class="log-actions">
+        <button class="btn ghost" id="retryBtn">Retry</button>
+        <button class="btn ghost" id="copyLogs">Copy</button>
+        <button class="btn ghost" id="clearHistory">Clear</button>
+      </div>
+
+      <div class="history" id="historyList"></div>
+      <div class="logbox" id="logBox">Logs will appear here...</div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

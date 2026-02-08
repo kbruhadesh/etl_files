@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>ETL Runner Dashboard</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: white;
+      text-align: center;
+      padding-top: 70px;
+    }
+
+    h1 {
+      color: #58a6ff;
+      font-size: 32px;
+    }
+
+    button {
+      margin-top: 40px;
+      background: #238636;
+      border: none;
+      padding: 15px 40px;
+      font-size: 20px;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #2ea043;
+    }
+
+    #status {
+      margin-top: 25px;
+      font-size: 18px;
+      color: #ffd700;
+    }
+  </style>
+
+</head>
+<body>
+
+  <h1>ETL Dashboard (Manual Trigger)</h1>
+  <p>Click the button to run the ETL Job on Cloud Run</p>
+
+  <button onclick="runETL()">Run ETL Now</button>
+
+  <div id="status"></div>
+
+  <script>
+    async function runETL() {
+      let status = document.getElementById("status");
+      status.innerHTML = "Running ETL job… ⏳";
+
+      try {
+        const response = await fetch(
+          "https://etl-transform-service-564878881238.asia-south1.run.app",
+          { method: "GET" }
+        );
+
+        const text = await response.text();
+        status.innerHTML = "Response: " + text;
+      } catch (err) {
+        status.innerHTML = "❌ Error: " + err.message;
+      }
+    }
+  </script>
+
+</body>
+</html>

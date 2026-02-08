@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>ETL Control Panel</title>
+  <style>
+    :root{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{background:#0f1724;color:#e6eef8;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;padding:20px;}
+    .card{width:760px;max-width:100%;background:linear-gradient(180deg,#0b1220 0,#08101a 100%);border-radius:12px;padding:20px;box-shadow:0 10px 30px rgba(2,6,23,0.6);}
+    h1{margin:0 0 10px;font-size:20px;}
+    .meta{color:#9fb0c8;font-size:13px;margin-bottom:18px;}
+    .row{display:flex;gap:12px;align-items:center;margin-bottom:14px;}
+    button{background:#06b6d4;border:none;padding:10px 16px;border-radius:8px;color:#042027;font-weight:700;cursor:pointer;}
+    button:active{transform:translateY(1px)}
+    .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.06);color:#cfeff6;font-weight:600}
+    .status-pill{padding:6px 10px;border-radius:999px;font-weight:700;font-size:13px;}
+    .status-ok{background:#0c6b4f;color:#dff4ec}
+    .status-fail{background:#7b1123;color:#ffdce0}
+    .status-wait{background:#5b6b80;color:#dbeaf8}
+    .box{background:#071226;padding:12px;border-radius:8px;color:#bcd6e8;min-height:84px;overflow:auto;font-family:monospace;font-size:13px}
+    label{display:block;color:#9fb0c8;font-size:13px;margin-bottom:6px}
+    .small{font-size:12px;color:#7f9fb8}
+    a.file-link{color:#9fe8ff;text-decoration:underline}
+    footer{margin-top:12px;color:#6f8aa6;font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="card" role="main">
+    <h1>ETL Control Panel</h1>
+    <div class="meta">Manual trigger UI for your Cloud Run ETL. Button calls your ETL endpoint and shows last run & response.</div>
+
+    <div class="row">
+      <button id="runBtn">Run ETL Now</button>
+      <button id="runBtnQuiet" class="btn-ghost">Run (quiet)</button>
+      <div id="status" style="margin-left:12px">
+        <span class="status-pill status-wait" id="statusPill">Idle</span>
+        <div class="small" style="margin-top:6px" id="lastRun">Last run: —</div>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div>
+        <label>Endpoint</label>
+        <div class="box" id="endpointBox">https://etl-transform-service-564878881238.asia-south1.run.app/</div>
+        <div style="margin-top:8px" class="small">Local copy of your ETL file: <a class="file-link" href="file:///home/teja_ramidi3006/etl_files/main.py" target="_blank">file:///home/teja_ramidi3006/etl_files/main.py</a></div>
+      </div>
+
+      <div>
+        <label>Options</label>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1">
+            <label class="small">Trigger method</label>
+            <select id="method" style="width:100%;padding:8px;border-radius:8px;background:#071226;color:#cfeff6;border:1px solid rgba(255,255,255,0.03)">
+              <option value="GET">GET (simple)</option>
+              <option value="POST">POST (recommended if you pass payload)</option>
+            </select>
+          </div>
+          <div style="width:120px">
+            <label class="small">Timeout (s)</label>
+            <input id="timeout" type="number" value="30" min="5" style="width:100%;padding:8px;border-radius:8px;background:#071226;color:#cfeff6;border:1px solid rgba(255,255,255,0.03)"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <label>Response / Logs</label>
+      <div class="box" id="logBox">No runs yet.</div>
+    </div>
+
+    <footer>
+      Tip: when you secure the endpoint later, switch to POST with an API key header and set Cloud Run to require authentication.
+    </footer>
+  </div>
+
+  <script>
+    const CLOUD_RUN_URL = "https://etl-transform-service-564878881238.asia-south1.run.app/";
+    const runBtn = document.getElementById("runBtn");
+    const runBtnQuiet = document.getElementById("runBtnQuiet");
+    const statusPill = document.getElementById("statusPill");
+    const lastRun = document.getElementById("lastRun");
+    const logBox = document.getElementById("logBox");
+    const methodEl = document.getElementById("method");
+    const timeoutEl = document.getElementById("timeout");
+
+    function setStatus(text, cls) {
+      statusPill.textContent = text;
+      statusPill.className = "status-pill " + cls;
+    }
+
+    function appendLog(text) {
+      const t = new Date().toLocaleString();
+      logBox.textContent = `[${t}] ${text}\n\n` + logBox.textContent;
+    }
+
+    async function triggerETL({quiet=false}={}) {
+      try {
+        setStatus("Running...", "status-wait");
+        const method = methodEl.value || "GET";
+        const t = Number(timeoutEl.value) * 1000 || 30000;
+        const controller = new AbortController();
+        const id = setTimeout(() => controller.abort(), t);
+
+        let res;
+        if (method === "GET") {
+          res = await fetch(CLOUD_RUN_URL, {method:"GET", signal:controller.signal});
+        } else {
+          res = await fetch(CLOUD_RUN_URL, {
+            method:"POST",
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({trigger: "manual", ts: Date.now()}),
+            signal:controller.signal
+          });
+        }
+        clearTimeout(id);
+
+        const text = await (res.text().catch(()=>"[non-text response]"));
+        lastRun.textContent = "Last run: " + new Date().toLocaleString();
+        if (res.ok) {
+          setStatus("Success", "status-ok");
+          appendLog("SUCCESS: HTTP " + res.status + " — " + (text||"(empty response)"));
+        } else {
+          setStatus("Error", "status-fail");
+          appendLog("ERROR: HTTP " + res.status + " — " + (text||"(empty response)"));
+        }
+        if (!quiet) {
+          // show full response
+          logBox.textContent = "=== HTTP " + res.status + " ===\n" + text + "\n\n" + logBox.textContent;
+        }
+      } catch (err) {
+        setStatus("Failed", "status-fail");
+        appendLog("EXCEPTION: " + (err.message || String(err)));
+      }
+    }
+
+    runBtn.addEventListener("click", () => triggerETL({quiet:false}));
+    runBtnQuiet.addEventListener("click", () => triggerETL({quiet:true}));
+
+    // ping endpoint on load to show current status (optional)
+    (async function probe() {
+      try {
+        const r = await fetch(CLOUD_RUN_URL, {method:"HEAD"});
+        if (r.ok) { setStatus("Ready", "status-ok"); lastRun.textContent = "Last known: reachable"; }
+      } catch(e) { setStatus("Idle", "status-wait"); }
+    })();
+  </script>
+</body>
+</html>

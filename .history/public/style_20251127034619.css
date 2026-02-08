@@ -1,0 +1,123 @@
+:root{
+  --bg:#040b1a; --card:#0b162a; --muted:#a9b3c1; 
+  --accent:#00d4ff;
+  --ok:#0fa36b; --fail:#cc2e43; --wait:#738599;
+  font-family: Inter, system-ui, -apple-system, Roboto, Arial;
+}
+
+body{
+  margin:0;
+  background:#020814;
+  color:#e6eef8;
+}
+
+.topbar{
+  padding:18px 24px;
+  font-size:22px;
+  display:flex;
+  justify-content:space-between;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+}
+.title{font-weight:800}
+.meta{color:var(--muted);font-size:14px;margin-top:6px}
+
+.container{
+  display:grid;
+  grid-template-columns:420px 1fr;
+  padding:20px;
+  gap:20px;
+}
+
+.panel{
+  background:var(--card);
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 10px 40px rgba(0,0,0,0.45);
+}
+
+.controls{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:15px;
+}
+
+.btn{
+  padding:10px 14px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.btn.primary{
+  background:var(--accent);
+  color:#003344;
+}
+
+.btn.ghost{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.15);
+  color:var(--muted);
+}
+
+.status-row{
+  display:flex;
+  gap:10px;
+  margin:10px 0;
+}
+
+.status{
+  padding:8px 12px;
+  border-radius:999px;
+  font-weight:800;
+}
+
+.status-wait{background:var(--wait);}
+.status-ok{background:var(--ok);}
+.status-fail{background:var(--fail);}
+
+.status-info{font-size:13px;color:var(--muted)}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:10px;
+}
+
+input{
+  padding:10px;
+  border-radius:6px;
+  border:1px solid rgba(255,255,255,0.1);
+  background:#071426;
+  color:#d2e7ff;
+}
+
+.log-actions{display:flex; gap:10px; margin-bottom:12px}
+.history{max-height:200px; overflow:auto; margin-bottom:12px}
+.logbox{
+  background:#000814;
+  padding:12px;
+  border-radius:8px;
+  font-family:monospace;
+  font-size:13px;
+  height:200px;
+  overflow:auto;
+  color:#cfeff6;
+}
+
+/* Toast */
+.toast{
+  background:#0fa36b;
+  color:#fff;
+  padding:10px 16px;
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  border-radius:6px;
+  font-weight:700;
+  opacity:0;
+  transition:0.3s;
+}
+.toast.show{opacity:1}

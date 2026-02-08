@@ -1,0 +1,31 @@
+:root{
+  --bg:#071022; --card:#081226; --muted:#94a8bf; --accent:#06b6d4;
+  --ok:#0c934f; --fail:#aa2230; --wait:#5b6b80;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(180deg,#041225 0,#031322 100%);color:#e6eef8}
+.topbar{padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.03);display:flex;justify-content:space-between;align-items:center}
+.title{font-weight:700}
+.meta{font-size:13px;color:var(--muted)}
+.container{display:grid;grid-template-columns:420px 1fr;gap:18px;padding:20px}
+.panel{background:linear-gradient(180deg,var(--card),#031224);border-radius:10px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
+.btn{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+.btn.primary{background:var(--accent);color:#012529}
+.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.05);color:var(--muted)}
+.left{display:flex;gap:8px}
+.right{display:flex;gap:8px;align-items:center}
+.small{font-size:13px;color:var(--muted)}
+.status-row{display:flex;align-items:center;gap:12px;margin:8px 0}
+.status{padding:8px 12px;border-radius:999px;font-weight:800}
+.status-wait{background:var(--wait);color:#dbeaf8}
+.status-ok{background:var(--ok);color:#e7fbef}
+.status-fail{background:var(--fail);color:#ffdce0}
+.status-info{font-size:13px}
+.log-actions{display:flex;gap:8px;margin-bottom:10px}
+.history{max-height:240px;overflow:auto;border-radius:8px;background:#051021;padding:8px;border:1px solid rgba(255,255,255,0.02);font-family:monospace;margin-bottom:8px}
+.history .item{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;gap:8px;align-items:center}
+.logbox{background:#010517;padding:12px;border-radius:8px;min-height:160px;overflow:auto;color:#cfeff6;font-family:monospace;font-size:13px}
+.footer{padding:12px 20px;color:var(--muted);font-size:13px}
+.muted{color:var(--muted);font-size:13px}
